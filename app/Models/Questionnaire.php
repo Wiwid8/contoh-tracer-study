@@ -9,9 +9,16 @@ class Questionnaire extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['title', 'questions']; // questions bisa JSON untuk pertanyaan dinamis
+    protected $fillable = ['category_id', 'title', 'description', 'required_status', 'status'];
 
-    public function responses() {
-        return $this->hasMany(Response::class);
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
+
+    public function questions()
+    {
+        return $this->hasMany(Question::class);
     }
 }
+

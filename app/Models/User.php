@@ -1,18 +1,36 @@
 <?php
 
+
 namespace App\Models;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class User extends Authenticatable
 {
-    use HasFactory;
+    use HasFactory, Notifiable;
 
-    protected $fillable = ['name', 'email', 'password', 'role'];
+    protected $fillable = [
+        'email', 'password', 'role', 'provider', 'provider_id',
+        'verification_string', 'pp_url', 'last_login_at', 'otp_code', 'otp_expires_at'
+    ];
 
-    // Roles: alumni, admin, super_admin
-    public function isAlumni() { return $this->role === 'alumni'; }
-    public function isAdmin() { return in_array($this->role, ['admin', 'super_admin']); }
-    public function isSuperAdmin() { return $this->role === 'super_admin'; }
+    protected $hidden = ['password'];
+
+    public function alumni()
+    {
+        return $this->hasOne(Alumni::class);
+    }
+
+    public function admin()
+    {
+        return $this->hasOne(Admin::class);
+    }
+
+    public function userResponses()
+    {
+        return $this->hasMany(UserResponse::class);
+    }
 }
+

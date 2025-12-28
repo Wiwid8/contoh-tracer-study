@@ -28,8 +28,13 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('alumni.dashboard', absolute: false));
+        $request->user()->update([
+            'last_login_at' => now(),
+        ]);
+
+        return redirect()->intended(route('public', absolute: false));
     }
+
 
     /**
      * Destroy an authenticated session.

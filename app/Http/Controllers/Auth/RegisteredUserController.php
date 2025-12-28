@@ -11,6 +11,10 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
+use App\Models\Alumni;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\OtpMail;
 
 class RegisteredUserController extends Controller
 {
@@ -30,21 +34,41 @@ class RegisteredUserController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'email' => ['required', 'email', 'unique:users'],
+            'password' => ['required', 'confirmed', 'min:8'],
+            'fullname' => ['required', 'string', 'max:255'],
+            'nim' => ['required', 'unique:alumnis'],
+            'gender' => ['required', 'in:L,P'],
+            'date_of_birth' => ['required', 'date'],
+            'study_program' => ['required'],
+            'graduation_date' => ['required', 'date'],
         ]);
+
+        // Generate OTP
+        $otp = rand(100000, 999999);
 
         $user = User::create([
-            'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'role' => 'alumni',
+            'otp_code' => $otp,
+            'otp_expires_at' => now()->addMinutes(10),
         ]);
 
-        event(new Registered($user));
+        Alumni::create([
+            'user_id' => $user->id,
+            'fullname' => $request->fullname,
+            'nim' => $request->nim,
+            'gender' => $request->gender,
+            'date_of_birth' => $request->date_of_birth,
+            'study_program' => $request->study_program,
+            'graduation_date' => $request->graduation_date,
+        ]);
 
-        Auth::login($user);
+        // Kirim OTP ke email
+        Mail::to($user->email)->send(new OtpMail($otp));
 
-        return redirect(route('dashboard', absolute: false));
+        // Redirect ke halaman input OTP
+        return redirect()->route('otp.form')->with('email', $user->email);
     }
 }

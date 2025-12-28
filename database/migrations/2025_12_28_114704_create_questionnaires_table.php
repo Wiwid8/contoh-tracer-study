@@ -12,9 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('questionnaires', function (Blueprint $table) {
-            $table->id();
-            $table->string('title');
-            $table->json('questions');
+            $table->bigIncrements('id');
+            $table->foreignId('category_id')->constrained('categories')->onDelete('cascade');
+            $table->string('title', 255);
+            $table->text('description')->nullable();
+            $table->boolean('required_status')->default(true);
+            $table->enum('status', ['active','inactive'])->default('active');
             $table->timestamps();
         });
     }

@@ -2,12 +2,10 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Auth\OtpVerificationController;
+use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\{
     QuestionnaireController,
-    ForumController,
-    JobController,
-    LeaderboardController,
-    MentorshipController
 };
 
 require __DIR__.'/auth.php';
@@ -21,17 +19,18 @@ Route::get('/', function () {
     return view('index');
 })->name('public');
 
-// Lowongan kerja (lihat saja)
-Route::get('/jobs', [JobController::class, 'index'])->name('jobs.index');
-Route::get('/jobs/{id}', [JobController::class, 'show'])->name('jobs.show');
+// Rute untuk OTP
+Route::get('/verify-otp', [OtpVerificationController::class, 'show'])
+    ->name('otp.form');
 
-// Leaderboard (lihat)
-Route::get('/leaderboard', [LeaderboardController::class, 'index'])
-    ->name('leaderboard.index');
+Route::post('/verify-otp', [OtpVerificationController::class, 'verify'])
+    ->name('otp.verify');
 
-// Forum (lihat saja)
-Route::get('/forum', [ForumController::class, 'index'])->name('forum.index');
-Route::get('/forum/{id}', [ForumController::class, 'show'])->name('forum.show');
+Route::get('/auth/google', [GoogleAuthController::class, 'redirect'])
+    ->name('google.redirect');
+
+Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])
+    ->name('google.callback');
 
 /*
 |--------------------------------------------------------------------------
@@ -76,19 +75,6 @@ Route::middleware(['auth', 'role:alumni'])->group(function () {
         [QuestionnaireController::class, 'submit']
     )->name('questionnaires.submit');
 
-    // Forum (CRUD + comment)
-    Route::get('/forum/create', [ForumController::class, 'create'])->name('forum.create');
-    Route::post('/forum', [ForumController::class, 'store'])->name('forum.store');
-    Route::get('/forum/{id}/edit', [ForumController::class, 'edit'])->name('forum.edit');
-    Route::put('/forum/{id}', [ForumController::class, 'update'])->name('forum.update');
-    Route::delete('/forum/{id}', [ForumController::class, 'destroy'])->name('forum.destroy');
-    Route::post('/forum/{id}/comment', [ForumController::class, 'storeComment'])
-        ->name('forum.comment');
-
-    // Mentorship (request)
-    Route::post('/mentorship/request',
-        [MentorshipController::class, 'request']
-    )->name('mentorship.request');
 });
 
 /*
